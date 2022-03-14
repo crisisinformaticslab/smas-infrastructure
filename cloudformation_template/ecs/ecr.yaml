@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Public Repo for hosting the ECS Image
+
+Resources:
+  PublicTwitterRepo:
+    Type: AWS::ECR::PublicRepository
+    Properties:
+      RepositoryName: "twitter-ingester-public"
+      RepositoryCatalogData:
+        UsageText: "This is a sample usage text."
+        AboutText: "This is a sample about text."
+        OperatingSystems:
+          - "Linux"
+          - "Windows"
+        Architectures:
+          - "x86"
+          - "ARM"
+        RepositoryDescription: "This is a sample repository description."

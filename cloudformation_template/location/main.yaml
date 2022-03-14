@@ -1,0 +1,15 @@
+# Location service for reverse geocoding
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Location service that allows the tweet processor to reverse geocode
+
+Resources:
+  GeoCoder:
+    Type: AWS::Location::PlaceIndex
+    Properties: 
+      DataSource: Esri
+      DataSourceConfiguration: 
+        IntendedUse: SingleUse
+      IndexName: SMAS-geo-coder
+      PricingPlan: RequestBasedUsage
+

@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Lambda Orchestrator
+
+Parameters:
+  orchestratorRoleARN:
+    Type : String
+  vpcID:
+    Type: String
+
+
+Resources:
+  LambdaSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Allow Lambda to run for twitter orchestrator
+        VpcId: !Ref vpcID
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+  mainLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: ./code
+      FunctionName: twitter-ingest-orchestrator
+      Role: !Ref orchestratorRoleARN
+      Runtime: python2.7
+      Handler: application.lambda_handler
+      Timeout: 20
+      Environment:
+        Variables:
+          securityGroup: !GetAtt LambdaSG.GroupId
+    DependsOn : LambdaSG
+
+Outputs:
+  ARN:
+    Value: !GetAtt mainLambda.Arn
+    Description: ARN of the Lambda
+  Name:
+    Value: !Ref mainLambda
+    Description: Name of the Lambda

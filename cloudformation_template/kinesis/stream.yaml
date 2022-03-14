@@ -1,0 +1,21 @@
+# Not naming the stream since we don't need it. Let Cloudformation generate a unique ID. 
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Kinesis Ingestion Stream for SMAS
+
+Resources:
+  InputStream:
+    Type: AWS::Kinesis::Stream
+    Properties: 
+      ShardCount: 1
+
+
+Outputs:
+  Name:
+    Value: !Ref InputStream
+    Description: Name of the Kinesis Stream
+  ARN:
+    Value: !GetAtt InputStream.Arn
+    Description: ARN of the Kinesis Stream
+
+

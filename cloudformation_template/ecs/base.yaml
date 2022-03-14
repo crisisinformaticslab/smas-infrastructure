@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Stack for ECS
+Parameters:
+  ecsTaskRoleARN:
+    Type : String
+  ecsTaskExecutionRoleARN:
+    Type : String
+  ServiceName:
+    Type: String
+    # update with the name of the service
+    Default: TwitterIngestion
+
+Resources:
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinition]]
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: LogGroup
+    Properties:
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+     
+      Cpu: 256
+      
+      Memory: 0.5GB
+      ExecutionRoleArn: !Ref ecsTaskExecutionRoleARN
+      TaskRoleArn: !Ref ecsTaskRoleARN
+      ContainerDefinitions:
+        - Name: !Ref ServiceName
+          Image: public.ecr.aws/c4a4m3d9/twitter-ingester:latest
+          # Send logs to CloudWatch Logs
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+
+Outputs:
+  Name:
+    Value: !Ref ECSCluster
+    Description: Name of the ECS Cluster
+  TaskDefinitionARN: 
+    Value: !Ref TaskDefinition
+    Description: ARN of the Task Definition for the ECS Cluster
+
+
+

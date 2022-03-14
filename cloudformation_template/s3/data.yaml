@@ -1,0 +1,20 @@
+# Landing Zone for Data
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Storage Bucket for SMAS Ingestion
+
+Resources:
+  S3LandingZone:
+    Type: 'AWS::S3::Bucket'
+    Properties: 
+      Tags:
+        - Key: "creator"
+          Value: "smas-creator"
+
+Outputs:
+  BucketName:
+    Value: !Ref S3LandingZone
+    Description: Name of the Landing Zone Amazon S3 bucket
+  BucketARN:
+    Value: !GetAtt S3LandingZone.Arn
+    Description: ARN of the Landing Zone Amazon S3 bucket

@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: DynamoDB tables for SMAS
+Resources: 
+  trackerTable: 
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: 
+        - AttributeName: "search_term"
+          AttributeType: "S"
+        - AttributeName: "run_id"
+          AttributeType: "S"
+        - AttributeName: "smas_id"
+          AttributeType: "S"
+      KeySchema: 
+        - AttributeName: "search_term"
+          KeyType: "HASH"
+        - AttributeName: "run_id"
+          KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: smas_id-index
+          KeySchema: 
+            - 
+              AttributeName: smas_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+
+  # orchestratorTable: 
+  #   Type: AWS::DynamoDB::Table
+  #   Properties:
+  #     AttributeDefinitions: 
+  #       - AttributeName: "task_arn"
+  #         AttributeType: "S"
+  #     KeySchema: 
+  #       - AttributeName: "task_arn"
+  #         KeyType: "HASH"
+  #     ProvisionedThroughput:
+  #       ReadCapacityUnits: 5
+  #       WriteCapacityUnits: 5
+      
+Outputs:
+  Name:
+    Value: !Ref trackerTable
+    Description: Name of the DynamoDB Table
+#   ARN:
+#     Value: !GetAtt InputStream.Arn
+#     Description: ARN of the Kinesis Stream
+
+

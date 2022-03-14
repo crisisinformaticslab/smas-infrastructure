@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: IAM For Kinesis management
+
+Parameters:
+  s3BucketARN:
+    Type: String
+  kinesisStreamARN:
+    Type : String
+  IAMRolePB:
+    Type: String
+
+Resources:
+  deliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary: !Ref IAMRolePB
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Ref 'AWS::AccountId'
+
+  deliveryPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: firehose_delivery_policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:AbortMultipartUpload'
+              - 's3:GetBucketLocation'
+              - 's3:GetObject'
+              - 's3:ListBucket'
+              - 's3:ListBucketMultipartUploads'
+              - 's3:PutObject'
+            Resource:
+              - !Ref s3BucketARN
+          - Effect: Allow
+            Action:
+              - 'kinesis:DescribeStream'
+              - 'kinesis:GetShardIterator'
+              - 'kinesis:GetRecords'
+            Resource:
+              - !Ref kinesisStreamARN
+             
+      Roles:
+        - !Ref deliveryRole
+
+
+Outputs:
+  deliveryRoleARN:
+    Value: !GetAtt deliveryRole.Arn
+    Description: ARN of the Kinesis Delivery IAM Role
+  
+
+

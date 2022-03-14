@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  IAMRolePB:
+    Type: String
+    Default: arn:aws:iam::901232515713:policy/iamRolePermissionBoundary
+  VPCID:
+    Type: String
+    Default: vpc-0d155f9604f8734b8
+
+Resources:
+  DataStores:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: s3/data.yaml
+
+  GeoCoder:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: location/main.yaml
+
+  # KinesisStream:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: kinesis/stream.yaml
+
+  # KinesisIAM: 
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: kinesis/iam.yaml
+  #     Parameters:
+  #       s3BucketARN: !GetAtt DataStores.Outputs.BucketARN
+  #       kinesisStreamARN: !GetAtt KinesisStream.Outputs.ARN
+  #       IAMRolePB: !Ref IAMRolePB
+
+  # KinesisFirehose:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: kinesis/firehose.yaml
+  #     Parameters:
+  #       s3bucketArn: !GetAtt DataStores.Outputs.BucketARN
+  #       kinesisStreamARN: !GetAtt KinesisStream.Outputs.ARN
+  #       deliveryRoleArn: !GetAtt KinesisIAM.Outputs.deliveryRoleARN
+
+  DynamoTables:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: dynamodb/tables.yaml
+
+  # IAMRoles:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: iam/base.yaml
+  #     Parameters:
+  #       IAMRolePB: !Ref IAMRolePB
+  #       kinesisStreamARN: !GetAtt KinesisStream.Outputs.ARN
+  # ECR:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: ecs/ecr.yaml
+
+  # ECS:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: ecs/base.yaml
+  #     Parameters:
+  #       ecsTaskRoleARN: !GetAtt IAMRoles.Outputs.ecsTaskRoleARN
+  #       ecsTaskExecutionRoleARN: !GetAtt IAMRoles.Outputs.ecsTaskExecutionRoleARN
+
+  # Lambda:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: lambda/base.yaml
+  #     Parameters:
+  #       orchestratorRoleARN: !GetAtt IAMRoles.Outputs.orchestratorRoleARN
+  #       vpcID: !Ref VPCID
+
+
+  # Secrets: 
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: secrets/base.yaml
+  #     Parameters:
+  #       kinesisStreamName: !GetAtt KinesisStream.Outputs.Name
+  #       dynamoDBTableName: !GetAtt DynamoTables.Outputs.Name
+  #       ecsClusterName: !GetAtt ECS.Outputs.Name
+  #       taskDefinitionARN: !GetAtt ECS.Outputs.TaskDefinitionARN
+  #       vpcID: !Ref VPCID
+  #       s3bucketArn: !GetAtt DataStores.Outputs.BucketARN
+
+  Secrets: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: secrets/base.yaml
+      Parameters:
+        kinesisStreamName: test
+        dynamoDBTableName: !GetAtt DynamoTables.Outputs.Name
+        ecsClusterName: test
+        taskDefinitionARN: test
+        vpcID: !Ref VPCID
+        s3BucketName: !GetAtt DataStores.Outputs.BucketName
+
+  # Cloudwatch:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: cloudwatch/base.yaml
+  #     Parameters:
+  #       lambdaARN: !GetAtt Lambda.Outputs.ARN
+  #       lambdaName: !GetAtt Lambda.Outputs.Name
+

@@ -1,0 +1,185 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: IAM For Overall SMAS
+
+Parameters:
+  # s3BucketARN:
+  #   Type: String
+  kinesisStreamARN:
+    Type : String
+  IAMRolePB:
+    Type: String
+
+
+Resources:
+  ecsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary: !Ref IAMRolePB
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  ecsTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary: !Ref IAMRolePB
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref kinesisWriterPolicy
+        - !Ref secretsAccessPolicy
+        - !Ref cloudwatchWritePolicy
+        - !Ref dynamoDBWriterPolicy
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+
+  orchestratorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary: !Ref IAMRolePB
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: 
+                - lambda.amazonaws.com
+                - ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref secretsAccessPolicy
+        - !Ref cloudwatchWritePolicy
+        - !Ref dynamoDBWriterPolicy
+        - !Ref dynamoDBReaderPolicy
+        - !Ref iamManagerPolicy
+        - !Ref paramsAccessPolicy
+
+  iamManagerPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'iam:PutRolePolicy'
+              - 'iam:PutRolePermissionsBoundary'
+              - 'iam:AttachRolePolicy'
+            Resource:
+              - '*'
+
+
+  kinesisWriterPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'kinesis:PutRecords'
+              - 'kinesis:PutRecord'
+            Resource:
+              - !Ref kinesisStreamARN
+
+  secretsAccessPolicy: 
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'secretsmanager:GetSecretValue'
+              - 'secretsmanager:DescribeSecret'
+            Resource:
+              - '*'
+
+  paramsAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'ssm:DescribeParameters'
+              - 'ssm:GetParameters'
+            Resource:
+              - '*'
+
+  cloudwatchWritePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'cloudwatch:PutMetricData'
+            Resource:
+              - '*'
+
+  dynamoDBWriterPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'dynamodb:PutItem'
+              - 'dynamodb:UpdateItem'
+              - 'dynamodb:BatchWriteItem'
+            Resource:
+              - '*'
+
+  dynamoDBReaderPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'dynamodb:BatchGetItem'
+              - 'dynamodb:Describe*'
+              - 'dynamodb:List*'
+              - 'dynamodb:GetItem'
+              - 'dynamodb:Query'
+              - 'dynamodb:Scan'
+              - 'dynamodb:PartiQLSelect'
+            Resource:
+              - '*'
+
+
+
+Outputs:
+  ecsTaskRoleARN:
+    Value: !GetAtt ecsTaskRole.Arn
+    Description: ARN of the ECS Task IAM Role
+
+  ecsTaskExecutionRoleARN:
+    Value: !GetAtt ecsTaskExecutionRole.Arn
+    Description: ARN of the ECS Task Execution IAM Role
+
+  orchestratorRoleARN:
+    Value: !GetAtt orchestratorRole.Arn
+  
+
+

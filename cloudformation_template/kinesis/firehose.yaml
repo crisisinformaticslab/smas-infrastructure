@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Stack for Firehose DeliveryStream S3 Destination.
+Parameters:
+   deliveryRoleArn:
+     Type: String
+   kinesisStreamARN:
+     Type: String
+   s3bucketArn:
+     Type: String
+
+Resources:
+   SMASFirehose: 
+      Type: AWS::KinesisFirehose::DeliveryStream
+      Properties: 
+         DeliveryStreamType: KinesisStreamAsSource
+         KinesisStreamSourceConfiguration: 
+             KinesisStreamARN: !Ref kinesisStreamARN
+             RoleARN: !Ref deliveryRoleArn
+         ExtendedS3DestinationConfiguration: 
+             BucketARN: !Ref s3bucketArn
+             BufferingHints: 
+                 IntervalInSeconds: 60
+                 SizeInMBs: 50
+             CompressionFormat: UNCOMPRESSED
+             Prefix: smas-firehose/
+             RoleARN: !Ref deliveryRoleArn
+
+
+Outputs:
+  Name:
+    Value: !Ref SMASFirehose
+    Description: Name of the Kinesis Firehose
+
+
+
